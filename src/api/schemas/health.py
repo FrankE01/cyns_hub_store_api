@@ -6,6 +6,4 @@ from api.core.config import settings
 class Health(BaseModel):
     status: str = "ok"
     version: str = Field(default=settings.version)
-
-
-health = Health()
+    database: str = "not_checked"

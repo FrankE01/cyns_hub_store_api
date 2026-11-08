@@ -7,6 +7,10 @@ def test_get_settings() -> None:
     assert isinstance(settings, Config)
     assert settings.api_v1_prefix == "/api/v1"
     assert bool(settings.version)
+    assert bool(settings.db.url)
+    assert settings.db.pool_size == 5
+    assert settings.db.max_overflow == 10
+    assert settings.db.pool_timeout == 30.0
 
 
 def test_get_project_version() -> None:
