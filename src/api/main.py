@@ -7,7 +7,7 @@ from fastapi.responses import RedirectResponse
 from api.core.config import settings
 from api.core.database import engine, init_db
 from api.core.logging import RequestLoggingMiddleware, logger, setup_logging
-from api.routers.v1.health import router
+from api.routers.v1 import v1_router
 
 setup_logging(log_level=settings.log_level, json_format=settings.json_logs)
 
@@ -29,7 +29,7 @@ app: FastAPI = FastAPI(
 )
 
 app.add_middleware(RequestLoggingMiddleware)
-app.include_router(router)
+app.include_router(v1_router)
 
 
 @app.get("/", include_in_schema=False, response_model=None)
