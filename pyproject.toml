@@ -1,0 +1,52 @@
+[project]
+name = "api"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [{ name = "Francis Echesi", email = "echesisuccess01@gmail.com" }]
+requires-python = ">=3.12"
+dependencies = ["fastapi[standard]>=0.162.2"]
+
+[project.scripts]
+dev = "api.main:dev"
+start = "api.main:start"
+
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = ["ruff>=0.17.4"]
+
+[tool.fastapi]
+entrypoint = "api.main:app"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+src = ["src"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (automatic import sorting)
+    "B",   # flake8-bugbear (common bug patterns)
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade (modern Python 3.12+ syntax)
+    "ARG", # flake8-unused-arguments
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E501", # line-too-long (handled by formatter)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["api"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
