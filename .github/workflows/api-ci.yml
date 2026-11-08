@@ -3,21 +3,13 @@ name: API CI
 on:
   push:
     branches: [main]
-    paths:
-      - 'apps/api/**'
-      - '.github/workflows/api-ci.yml'
   pull_request:
-    paths:
-      - 'apps/api/**'
-      - '.github/workflows/api-ci.yml'
+    branches: [main]
 
 jobs:
   test:
     name: Lint, Format, and Automated Tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/api
 
     steps:
       - name: Checkout repository
@@ -27,12 +19,12 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-          cache-dependency-glob: "apps/api/uv.lock"
+          cache-dependency-glob: "uv.lock"
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version-file: "apps/api/.python-version"
+          python-version-file: ".python-version"
 
       - name: Install dependencies
         run: uv sync --frozen
