@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
 from sqlalchemy import select
@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.core.config import settings
 from api.core.database import get_db_session
 from api.models.user import User, UserRole
+from api.schemas.auth import LoginCredentials
 
 password_hash = PasswordHash.recommended()
 
@@ -155,3 +156,39 @@ async def get_current_admin(
             detail="Administrator access required",
         )
     return current_user
+
+
+async def extract_login_credentials(request: Request) -> LoginCredentials:
+    """Extracts and normalizes login credentials from JSON or Form-encoded request body."""
+    content_type = request.headers.get("content-type", "").lower()
+
+    if (
+        "application/x-www-form-urlencoded" in content_type
+        or "multipart/form-data" in content_type
+    ):
+        form = await request.form()
+        raw_email = form.get("username") or form.get("email")
+        raw_password = form.get("password")
+    else:
+        try:
+            body = await request.json()
+            if not isinstance(body, dict):
+                raise ValueError("Body must be a JSON object")
+            raw_email = body.get("email") or body.get("username")
+            raw_password = body.get("password")
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid request body. Expected JSON object with email and password or form-urlencoded data.",
+            ) from None
+
+    if not raw_email or not raw_password:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Email/username and password are required.",
+        )
+
+    return LoginCredentials(
+        email=str(raw_email).lower().strip(),
+        password=str(raw_password),
+    )

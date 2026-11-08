@@ -162,6 +162,76 @@ async def test_login_success(async_client: AsyncClient, mock_db: AsyncMock) -> N
 
 
 @pytest.mark.asyncio
+async def test_login_oauth2_form_success(
+    async_client: AsyncClient, mock_db: AsyncMock
+) -> None:
+    """Verify login via OAuth2 form-urlencoded (used by Swagger UI 'Authorize') succeeds."""
+    test_user_id = uuid.uuid4()
+    mock_user = User(
+        id=test_user_id,
+        email="owner@cynshub.com",
+        hashed_password=hash_password("adminSecret123"),
+        full_name="Cynthia Owner",
+        role=UserRole.ADMIN,
+        is_active=True,
+    )
+
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = mock_user
+    mock_db.execute.return_value = mock_result
+
+    # Exact format sent by Swagger UI OAuth2 Password Bearer flow
+    response = await async_client.post(
+        f"{settings.api_v1_prefix}/auth/login",
+        data={
+            "grant_type": "password",
+            "username": "owner@cynshub.com",
+            "password": "adminSecret123",
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert "refresh_token" in data
+    assert data["token_type"] == "bearer"
+
+
+@pytest.mark.asyncio
+async def test_token_alias_success(
+    async_client: AsyncClient, mock_db: AsyncMock
+) -> None:
+    """Verify POST /auth/token alias works with form-urlencoded credentials."""
+    test_user_id = uuid.uuid4()
+    mock_user = User(
+        id=test_user_id,
+        email="owner@cynshub.com",
+        hashed_password=hash_password("adminSecret123"),
+        full_name="Cynthia Owner",
+        role=UserRole.ADMIN,
+        is_active=True,
+    )
+
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = mock_user
+    mock_db.execute.return_value = mock_result
+
+    response = await async_client.post(
+        f"{settings.api_v1_prefix}/auth/token",
+        data={
+            "grant_type": "password",
+            "username": "owner@cynshub.com",
+            "password": "adminSecret123",
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert data["token_type"] == "bearer"
+
+
+@pytest.mark.asyncio
 async def test_login_invalid_password(
     async_client: AsyncClient, mock_db: AsyncMock
 ) -> None:
@@ -312,3 +382,26 @@ async def test_setup_initial_admin(
     )
     assert response.status_code == 400
     assert "disabled because users already exist" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_login_missing_credentials(async_client: AsyncClient) -> None:
+    """Verify login with empty body raises 422 Unprocessable Content."""
+    response = await async_client.post(
+        f"{settings.api_v1_prefix}/auth/login",
+        json={},
+    )
+    assert response.status_code == 422
+    assert "required" in response.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_login_invalid_json_body(async_client: AsyncClient) -> None:
+    """Verify login with malformed non-object JSON raises 400 Bad Request."""
+    response = await async_client.post(
+        f"{settings.api_v1_prefix}/auth/login",
+        content="not-json",
+        headers={"Content-Type": "application/json"},
+    )
+    assert response.status_code == 400
+    assert "invalid request body" in response.json()["detail"].lower()
