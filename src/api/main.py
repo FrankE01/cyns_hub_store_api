@@ -1,5 +1,5 @@
 import uvicorn
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 
 from api import router as health_router
 from api.core.config import settings
