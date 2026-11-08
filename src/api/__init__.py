@@ -7,5 +7,5 @@ router: APIRouter = APIRouter(tags=["Health"], prefix=settings.api_v1_prefix)
 
 
 @router.get("/")
-def get_health() -> Health:
+async def get_health() -> Health:
     return health
