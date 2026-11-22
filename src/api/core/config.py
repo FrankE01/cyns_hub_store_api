@@ -54,6 +54,31 @@ class DatabaseConfig(BaseSettings):
     connect_timeout: int = 5
 
 
+class PaystackConfig(BaseSettings):
+    """Paystack payment gateway configuration."""
+
+    secret_key: str = Field(
+        default="sk_test_mock_secret_key_for_dev",
+        validation_alias=AliasChoices("PAYSTACK_SECRET_KEY", "paystack_secret_key"),
+        description="Paystack secret API key",
+    )
+    public_key: str = Field(
+        default="pk_test_mock_public_key_for_dev",
+        validation_alias=AliasChoices("PAYSTACK_PUBLIC_KEY", "paystack_public_key"),
+        description="Paystack public API key",
+    )
+    base_url: str = Field(
+        default="https://api.paystack.co",
+        validation_alias=AliasChoices("PAYSTACK_BASE_URL", "paystack_base_url"),
+        description="Paystack base API URL",
+    )
+    callback_url: str = Field(
+        default="http://localhost:3000/checkout/callback",
+        validation_alias=AliasChoices("PAYSTACK_CALLBACK_URL", "paystack_callback_url"),
+        description="Default redirect URL after payment completion",
+    )
+
+
 class Config(BaseSettings):
     """Global application settings."""
 
@@ -66,6 +91,9 @@ class Config(BaseSettings):
 
     # Separated Database Sub-configuration
     db: DatabaseConfig = Field(default_factory=DatabaseConfig)
+
+    # Paystack Payment Gateway
+    paystack: PaystackConfig = Field(default_factory=PaystackConfig)
 
     # Authentication & Security
     jwt_secret_key: str = "cyns-hub-super-secret-key-change-in-production-min-32-chars"
