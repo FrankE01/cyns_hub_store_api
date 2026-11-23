@@ -1,3 +1,4 @@
+from api.models.analytics import AnalyticsEvent, EventType
 from api.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from api.models.catalog import (
     Category,
@@ -20,8 +21,10 @@ from api.models.payment import Payment
 from api.models.user import User, UserRole
 
 __all__ = [
+    "AnalyticsEvent",
     "Base",
     "Category",
+    "EventType",
     "FulfillmentStatus",
     "Order",
     "OrderItem",
