@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi import HTTPException
-from httpx import AsyncClient
+from httpx2 import AsyncClient
 
 from api.core.config import settings
 from api.core.database import get_db_session

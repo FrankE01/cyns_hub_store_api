@@ -3,7 +3,7 @@ import hmac
 import logging
 from typing import Any
 
-import httpx
+import httpx2
 from fastapi import HTTPException, status
 
 from api.core.config import settings
@@ -51,7 +51,7 @@ class PaystackService:
             payload["channels"] = channels
 
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            async with httpx2.AsyncClient(timeout=15.0) as client:
                 response = await client.post(url, headers=headers, json=payload)
                 data = response.json()
 
@@ -65,7 +65,7 @@ class PaystackService:
                         detail=f"Payment gateway error: {error_msg}",
                     )
                 return data.get("data", {})
-        except httpx.RequestError as exc:
+        except httpx2.RequestError as exc:
             logger.error(f"Network error communicating with Paystack: {exc}")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -80,7 +80,7 @@ class PaystackService:
         }
 
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            async with httpx2.AsyncClient(timeout=15.0) as client:
                 response = await client.get(url, headers=headers)
                 data = response.json()
 
@@ -92,7 +92,7 @@ class PaystackService:
                         detail=f"Payment verification failed: {error_msg}",
                     )
                 return data.get("data", {})
-        except httpx.RequestError as exc:
+        except httpx2.RequestError as exc:
             logger.error(f"Network error verifying Paystack transaction: {exc}")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

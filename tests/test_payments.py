@@ -8,7 +8,7 @@ from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from httpx import ASGITransport, AsyncClient
+from httpx2 import ASGITransport, AsyncClient
 
 from api.core.config import settings
 from api.core.database import get_db_session
@@ -138,7 +138,7 @@ async def test_paystack_service_initialize_mocked() -> None:
         },
     }
 
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+    with patch("httpx2.AsyncClient.post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = mock_resp
         data = await service.initialize_transaction(
             email="test@cynshub.com",
