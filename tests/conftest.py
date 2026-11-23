@@ -3,7 +3,7 @@ import sys
 from collections.abc import AsyncGenerator
 
 import pytest
-from httpx import ASGITransport, AsyncClient
+from httpx2 import ASGITransport, AsyncClient
 
 # On Windows environments where loopback TCP handshakes are restricted or filtered,
 # standard socket.socketpair hangs during accept(). Use a non-blocking UDP socketpair fallback.

@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from httpx import AsyncClient
+from httpx2 import AsyncClient
 
 from api.core.config import settings
 from api.routers.v1.health import get_health
