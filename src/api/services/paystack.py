@@ -7,6 +7,7 @@ import httpx2
 from fastapi import HTTPException, status
 
 from api.core.config import settings
+from api.core.http_client import ResilientHttpClient, http_client
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +19,11 @@ class PaystackService:
         self,
         secret_key: str | None = None,
         base_url: str | None = None,
+        client: ResilientHttpClient | None = None,
     ) -> None:
         self.secret_key = secret_key or settings.paystack.secret_key
         self.base_url = (base_url or settings.paystack.base_url).rstrip("/")
+        self.http_client = client or http_client
 
     async def initialize_transaction(
         self,
@@ -51,20 +54,24 @@ class PaystackService:
             payload["channels"] = channels
 
         try:
-            async with httpx2.AsyncClient(timeout=15.0) as client:
-                response = await client.post(url, headers=headers, json=payload)
-                data = response.json()
+            response = await self.http_client.post(
+                url,
+                headers=headers,
+                json=payload,
+                timeout=15.0,
+            )
+            data = response.json()
 
-                if response.status_code != 200 or not data.get("status"):
-                    error_msg = data.get("message", "Paystack initialization failed")
-                    logger.error(
-                        f"Paystack API error: {error_msg} (status: {response.status_code})"
-                    )
-                    raise HTTPException(
-                        status_code=status.HTTP_502_BAD_GATEWAY,
-                        detail=f"Payment gateway error: {error_msg}",
-                    )
-                return data.get("data", {})
+            if response.status_code != 200 or not data.get("status"):
+                error_msg = data.get("message", "Paystack initialization failed")
+                logger.error(
+                    f"Paystack API error: {error_msg} (status: {response.status_code})"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=f"Payment gateway error: {error_msg}",
+                )
+            return data.get("data", {})
         except httpx2.RequestError as exc:
             logger.error(f"Network error communicating with Paystack: {exc}")
             raise HTTPException(
@@ -80,18 +87,21 @@ class PaystackService:
         }
 
         try:
-            async with httpx2.AsyncClient(timeout=15.0) as client:
-                response = await client.get(url, headers=headers)
-                data = response.json()
+            response = await self.http_client.get(
+                url,
+                headers=headers,
+                timeout=15.0,
+            )
+            data = response.json()
 
-                if response.status_code != 200 or not data.get("status"):
-                    error_msg = data.get("message", "Payment verification failed")
-                    logger.error(f"Paystack verify error for {reference}: {error_msg}")
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Payment verification failed: {error_msg}",
-                    )
-                return data.get("data", {})
+            if response.status_code != 200 or not data.get("status"):
+                error_msg = data.get("message", "Payment verification failed")
+                logger.error(f"Paystack verify error for {reference}: {error_msg}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Payment verification failed: {error_msg}",
+                )
+            return data.get("data", {})
         except httpx2.RequestError as exc:
             logger.error(f"Network error verifying Paystack transaction: {exc}")
             raise HTTPException(

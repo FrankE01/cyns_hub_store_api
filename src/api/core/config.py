@@ -79,6 +79,65 @@ class PaystackConfig(BaseSettings):
     )
 
 
+class NotificationConfig(BaseSettings):
+    """SMS and WhatsApp messaging configuration."""
+
+    enabled: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("NOTIFICATIONS_ENABLED", "notifications_enabled"),
+        description="Whether outbound alerts are globally enabled",
+    )
+    arkesel_api_key: str = Field(
+        default="mock_arkesel_api_key",
+        validation_alias=AliasChoices("ARKESEL_API_KEY", "arkesel_api_key"),
+        description="Arkesel SMS API v2 key",
+    )
+    arkesel_sender_id: str = Field(
+        default="CynsHub",
+        validation_alias=AliasChoices("ARKESEL_SENDER_ID", "arkesel_sender_id"),
+        description="Approved sender ID on Arkesel dashboard",
+    )
+    arkesel_sms_url: str = Field(
+        default="https://sms.arkesel.com/api/v2/sms/send",
+        validation_alias=AliasChoices("ARKESEL_SMS_URL", "arkesel_sms_url"),
+        description="Arkesel SMS endpoint",
+    )
+
+    whatsapp_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("WHATSAPP_ENABLED", "whatsapp_enabled"),
+        description="Whether WhatsApp alerts are active",
+    )
+    whatsapp_access_token: str = Field(
+        default="mock_whatsapp_token",
+        validation_alias=AliasChoices("WHATSAPP_ACCESS_TOKEN", "whatsapp_access_token"),
+        description="Meta / Arkesel WhatsApp Cloud API access token",
+    )
+    whatsapp_phone_number_id: str = Field(
+        default="mock_phone_number_id",
+        validation_alias=AliasChoices(
+            "WHATSAPP_PHONE_NUMBER_ID", "whatsapp_phone_number_id"
+        ),
+        description="Meta WhatsApp business phone number ID",
+    )
+    whatsapp_api_url: str = Field(
+        default="https://graph.facebook.com/v17.0",
+        validation_alias=AliasChoices("WHATSAPP_API_URL", "whatsapp_api_url"),
+        description="Base WhatsApp Graph API URL",
+    )
+
+    admin_alert_phone: str = Field(
+        default="+233240000000",
+        validation_alias=AliasChoices("ADMIN_ALERT_PHONE", "admin_alert_phone"),
+        description="Business owner phone number for admin notifications",
+    )
+    storefront_url: str = Field(
+        default="http://localhost:3000",
+        validation_alias=AliasChoices("STOREFRONT_URL", "storefront_url"),
+        description="Public storefront URL used in tracking links",
+    )
+
+
 class Config(BaseSettings):
     """Global application settings."""
 
@@ -94,6 +153,9 @@ class Config(BaseSettings):
 
     # Paystack Payment Gateway
     paystack: PaystackConfig = Field(default_factory=PaystackConfig)
+
+    # Notifications & Alerts
+    notifications: NotificationConfig = Field(default_factory=NotificationConfig)
 
     # Authentication & Security
     jwt_secret_key: str = "cyns-hub-super-secret-key-change-in-production-min-32-chars"
