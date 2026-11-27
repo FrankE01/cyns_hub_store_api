@@ -27,6 +27,7 @@ from api.schemas.order import (
     QuoteRequest,
     QuoteResponse,
 )
+from api.services.notification import notification_service
 
 # Valid state machine transitions
 VALID_TRANSITIONS: dict[FulfillmentStatus, set[FulfillmentStatus]] = {
@@ -353,6 +354,7 @@ class OrderService:
 
         db.add(order)
         await db.commit()
+        await notification_service.notify_order_created(db, order)
         return order
 
     # ---------------------------------------------------------
@@ -535,4 +537,12 @@ class OrderService:
             order.updated_at = datetime.now(UTC)
 
         await db.commit()
+
+        if target_status == FulfillmentStatus.OUT_FOR_DELIVERY:
+            await notification_service.notify_out_for_delivery(db, order)
+        elif target_status == FulfillmentStatus.COMPLETED:
+            await notification_service.notify_order_completed(db, order)
+        elif target_status == FulfillmentStatus.CANCELLED:
+            await notification_service.notify_order_cancelled(db, order)
+
         return order

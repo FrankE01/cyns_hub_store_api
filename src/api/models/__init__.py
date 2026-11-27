@@ -8,6 +8,11 @@ from api.models.catalog import (
     ProductImage,
     ProductVariant,
 )
+from api.models.notification import (
+    NotificationChannel,
+    NotificationLog,
+    NotificationStatus,
+)
 from api.models.order import (
     FulfillmentStatus,
     Order,
@@ -26,6 +31,9 @@ __all__ = [
     "Category",
     "EventType",
     "FulfillmentStatus",
+    "NotificationChannel",
+    "NotificationLog",
+    "NotificationStatus",
     "Order",
     "OrderItem",
     "OrderStatusHistory",

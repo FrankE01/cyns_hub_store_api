@@ -18,6 +18,7 @@ from api.models.order import (
 )
 from api.models.payment import Payment
 from api.models.user import User
+from api.services.notification import notification_service
 from api.services.paystack import paystack_service
 
 logger = logging.getLogger(__name__)
@@ -144,12 +145,16 @@ class PaymentService:
 
             await db.commit()
             await db.refresh(payment)
+            if order:
+                await notification_service.notify_payment_confirmed(db, order)
             return payment
         else:
             payment.payment_status = PaymentStatus.FAILED
             payment.provider_metadata = verification_data
             await db.commit()
             await db.refresh(payment)
+            if order:
+                await notification_service.notify_payment_confirmed(db, order)
             return payment
 
     async def process_paystack_webhook(
@@ -239,6 +244,8 @@ class PaymentService:
         await db.commit()
         if payment:
             await db.refresh(payment)
+        if order:
+            await notification_service.notify_payment_confirmed(db, order)
         return payment
 
     async def submit_manual_payment(
